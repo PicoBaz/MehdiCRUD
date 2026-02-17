@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\VarExporter\VarExporter;
 
 class MehdiCrudCommand extends Command
@@ -34,18 +35,19 @@ class MehdiCrudCommand extends Command
         try {
             $this->modelName = $this->argument('model');
             $this->moduleName = $this->argument('module');
-
+            $this->error($this->moduleName);
+            $this->isModular = !empty($this->moduleName);
             if (!$this->validateModel()) {
-                return Command::FAILURE;
+                return CommandAlias::FAILURE;
             }
 
-            $this->isModular = !empty($this->moduleName);
+
 
             if ($this->isModular) {
                 $this->modulePath = base_path("Modules/{$this->moduleName}");
                 if (!$this->filesystem->isDirectory($this->modulePath)) {
                     $this->error("ماژول {$this->moduleName} وجود ندارد");
-                    return Command::FAILURE;
+                    return CommandAlias::FAILURE;
                 }
             }
 
@@ -53,7 +55,7 @@ class MehdiCrudCommand extends Command
 
             if (empty($this->migrationColumns)) {
                 $this->error("هیچ فیلدی در migration پیدا نشد");
-                return Command::FAILURE;
+                return CommandAlias::FAILURE;
             }
 
             $this->generateRequestClasses();
@@ -61,17 +63,16 @@ class MehdiCrudCommand extends Command
             $this->generateController();
 
             $this->info("✓ تمام فایل‌ها با موفقیت ایجاد شدند!");
-            return Command::SUCCESS;
+            return CommandAlias::SUCCESS;
         } catch (Exception $e) {
             $this->error("خطا: " . $e->getMessage());
-            return Command::FAILURE;
+            return CommandAlias::FAILURE;
         }
     }
 
     private function validateModel(): bool
     {
         $modelClass = $this->getModelClass();
-
         if (!class_exists($modelClass)) {
             $this->error("مدل {$this->modelName} پیدا نشد");
             return false;
@@ -110,7 +111,7 @@ class MehdiCrudCommand extends Command
 
     private function getMigrationColumns(): array
     {
-        $migrationPath = $this->isModular 
+        $migrationPath = $this->isModular
             ? $this->modulePath . '/database/migrations'
             : database_path('migrations');
 
@@ -125,7 +126,7 @@ class MehdiCrudCommand extends Command
         foreach ($files as $file) {
             $content = $this->filesystem->get($file->getPathname());
 
-            if (strpos($content, "create('{$this->tableName}'") !== false || 
+            if (strpos($content, "create('{$this->tableName}'") !== false ||
                 strpos($content, 'create("' . $this->tableName . '"') !== false) {
                 $columns = $this->parseColumnsFromMigration($content);
                 break;
@@ -335,7 +336,7 @@ class MehdiCrudCommand extends Command
         if ($this->isModular) {
             $this->call('module:make-query', [
                 'model' => $this->modelName,
-                'class' => $this->modelName . 'Query',
+                'name' => $this->modelName . 'Query',
                 'module' => $this->moduleName
             ]);
         } else {
