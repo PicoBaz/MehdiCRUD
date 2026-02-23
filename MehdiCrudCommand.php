@@ -30,12 +30,11 @@ class MehdiCrudCommand extends Command
         $this->filesystem = $filesystem;
     }
 
-    public function handle()
+    public function handle(): int
     {
         try {
             $this->modelName = $this->argument('model');
-            $this->moduleName = $this->argument('module');
-            $this->error($this->moduleName);
+            $this->moduleName = $this->argument('module') ?? '';
             $this->isModular = !empty($this->moduleName);
             if (!$this->validateModel()) {
                 return CommandAlias::FAILURE;
@@ -340,8 +339,9 @@ class MehdiCrudCommand extends Command
                 'module' => $this->moduleName
             ]);
         } else {
-            $this->call('make:query', [
-                'name' => $this->modelName . 'Query'
+            $this->call('module:make-query', [
+                'model' => $this->modelName,
+                'name' => $this->modelName . 'Query',
             ]);
         }
 
