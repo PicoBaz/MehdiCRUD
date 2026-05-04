@@ -19,7 +19,11 @@ This command generates complete CRUD operations from your migrations in seconds:
 ### Installation
 
 1. Copy `MehdiCrudCommand.php` to `app/Console/Commands/`
-2. That's it! Laravel auto-discovers commands.
+2. Copy `CacheKeyGenerator.php` to `app/Support/Cache`
+3. Copy `CacheService.php` to `app/Support/Cache`
+4. Copy `HasListCacheInvalidation.php` to `app/Traits`
+5. Use `HasListCacheInvalidation` in your Models
+6. That's it! Laravel auto-discovers commands.
 
 ### Quick Start
 
